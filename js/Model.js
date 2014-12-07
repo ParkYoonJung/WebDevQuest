@@ -9,48 +9,48 @@ function Model(data, startIndex, pageSize, currentIndex) {
     var pageSize = pageSize;
     var currentIndex = currentIndex; //배열데이터의 인덱스
 
-    this.setData = function(data) {
-        this.data = data;
+    this.setData = function(_data) {
+        data = _data;
     };
 
     this.getData = function() {
-        return this.data;
+        return data;
     };
 
-    this.setStartIndex = function(startIndex) {
-        this.startIndex = startIndex;
+    this.setStartIndex = function(_startIndex) {
+        startIndex = _startIndex;
     };
 
     this.getStartIndex = function() {
-        return this.startIndex;
+        return startIndex;
     };
 
-    this.setPageSize = function(pageSize) {
-        this.pageSize = pageSize;
+    this.setPageSize = function(_pageSize) {
+        pageSize = _pageSize;
     };
 
     this.getPageSize = function() {
-        return this.pageSize;
+        return pageSize;
     };
 
-    this.setCurrentIndex = function(currentIndex) {
-        this.currentIndex = currentIndex;
+    this.setCurrentIndex = function(_currentIndex) {
+        currentIndex = _currentIndex;
     };
 
     this.getCurrentIndex = function() {
-        return this.currentIndex;
+        return currentIndex;
     };
 
+    this.setEndIndex = function(_startIndex) {
+        startIndex = _startIndex;
+    };
+
+    this.getEndIndex = function() {
+        return startIndex + pageSize;
+    };
+
+    this.getTotalItemCount = function() {
+        return data.length;
+    };
 }
 
-Model.prototype.setEndIndex = function(startIndex) {
-    this.startIndex = startIndex;
-};
-
-Model.prototype.getEndIndex = function() {
-    return this.startIndex + this.pageSize;
-};
-
-Model.prototype.getTotalItemCount = function() {
-    return this.data.length;
-};

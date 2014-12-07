@@ -6,20 +6,20 @@ function Category(categoryName, categoryId) {
     var categoryName = categoryName;
     var categoryId = categoryId;
 
-    this.setCategoryName = function(categoryName) {
-        this.categoryName = categoryName
+    this.setCategoryName = function(_categoryName) {
+        categoryName = _categoryName;
     };
 
     this.getCategoryName = function() {
-        return this.categoryName;
+        return categoryName;
     };
 
-    this.setCategoryId = function(categoryId) {
-        this.categoryId = categoryId;
+    this.setCategoryId = function(_categoryId) {
+        categoryId = _categoryId;
     };
 
     this.getCategoryId = function() {
-        return this.categoryId;
+        return categoryId;
     };
 
 }

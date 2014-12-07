@@ -2,12 +2,10 @@
  * Created by YoonJung on 2014-11-26.
  */
 function Communicator() {
-    //this.getCategoryList = function (categoryId) {
-    this.connection = function(categoryIdInfo) {
+    this.connection = function (apiInfo) {
         var resultData;
         $.ajax({
-            url: "http://softstb.cjhellovision.com:8080/HApplicationServer/getCategoryTree.json?" +
-        "version=1&terminalKey=25C5C02283A06C80B1F18FCAB3C36D62" + categoryIdInfo,
+            url: "http://softstb.cjhellovision.com:8080/HApplicationServer/"+apiInfo,
             type: 'GET',
             dataType: 'json',
             async: false,
@@ -18,25 +16,31 @@ function Communicator() {
         return resultData;
     };
 
-    this.getCategoryList = function(categoryId) {
-        var url = "&categoryId=" +categoryId + "&depth=2";
+    this.getCategoryList = function (apiName, categoryId) {
+        var apiName = apiName + ".json?";
+        var version = "version=1";
+        var terminalKey = "25C5C02283A06C80B1F18FCAB3C36D62";
+        var url = apiName + version + "&terminalKey="+ terminalKey + "&categoryId=" + categoryId + "&depth=2";
+
         return url;
     };
 
-    this.getValues = function (data, key) {
-        var categoryItems = [];
-        for (var i in data) {
-            if (!data.hasOwnProperty(i))
-                continue;
-            if (data[i] != "") {
-                if (typeof data[i] == 'object') {
-                    categoryItems = categoryItems.concat(this.getValues(data[i], key));
-                } else if (i == key) {
-                    categoryItems.push(data[i]);
+    this.getValues = function (data) {
+        var resultCategoryList = [];
+        if (data != null) {
+            var categoryList = data.categoryList;
+            if(categoryList != null && categoryList.length > 1) {
+                console.log(categoryList.length);
+                // 자신을 포함한 데이터가 넘어오기 때문에 0부터가 아닌 1부터 시작
+                for (var i = 1; i < categoryList.length; i++) {
+                    var categoryName = categoryList[i].categoryName;
+                    var categoryId = categoryList[i].categoryId;
+                    var category = new Category(categoryName, categoryId);
+                    resultCategoryList.push(category);
                 }
             }
         }
-        return categoryItems;
+        return resultCategoryList;
     };
 
 }

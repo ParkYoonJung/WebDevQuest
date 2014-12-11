@@ -3,11 +3,11 @@
  */
 
 function Model(data, startIndex, pageSize, currentIndex) {
-
     var data = data;
     var startIndex = startIndex; //화면상 시작점
     var pageSize = pageSize;
     var currentIndex = currentIndex; //배열데이터의 인덱스
+    var visible = false;
 
     this.setData = function(_data) {
         data = _data;
@@ -51,6 +51,14 @@ function Model(data, startIndex, pageSize, currentIndex) {
 
     this.getTotalItemCount = function() {
         return data.length;
+    };
+
+    this.setVisible = function(_visible) {
+        visible = _visible;
+    };
+
+    this.getVisible = function() {
+        return visible;
     };
 }
 

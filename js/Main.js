@@ -5,35 +5,38 @@
 window.onload = function () {
     var main = new Main();
     document.addEventListener('keydown', main.moveFocus, false);
+    $("#contentGroupList").hide();
+    $(".bg_submenu_poster").hide();
 };
 
 function Main() {
     var history = [];
     var communicator = new Communicator();
+    var categoryManager = new CategoryManager();
+    var contentGroupManager = new ContentGroupManager();
 
     var getCategoryList = communicator.getCategoryList("getCategoryTree", 0);
     var resultCategoryList = communicator.connection(getCategoryList);
+    var categoryList = categoryManager.getValues(resultCategoryList);
 
-    var categoryList = communicator.getValues(resultCategoryList);
-
-    var menuList = document.getElementsByClassName("menu_list");
+    var mainView = $(".bg_left");
+    var menuList = mainView[0].getElementsByClassName("menu_list");
     var menuItem = menuList[0].getElementsByClassName("menu");
+    var mainModel = new Model(categoryList, 0, 9, 0);
 
-    var model = new Model(categoryList, 0, 9, 0);
-    //console.log(this + "Model.prototype/" + Model.prototype);
-
-    var submenuList = document.getElementsByClassName("submenu_list");
+    var subView = $(".bg_right");
+    var submenuList = subView[0].getElementsByClassName("submenu_list");
     var submenuItem = submenuList[0].getElementsByTagName("li");
-    var model2;
+    var subModel;
 
+    var contentGroupItem = submenuList[1].getElementsByClassName("rank_title02");
 
     function drawMenu(modelData) {
         var categoryData = modelData.getData();
-
         var j = modelData.getStartIndex();
         for (var i = 0; i < modelData.getPageSize(); i++) {
             if (categoryData[j] != null) {
-            menuItem[i].innerText = categoryData[j].getCategoryName();
+                menuItem[i].innerText = categoryData[j].getCategoryName();
             } else {
                 menuItem[i].innerText = "";
             }
@@ -42,75 +45,141 @@ function Main() {
         selectItem(modelData.getCurrentIndex() - modelData.getStartIndex());
     }
 
-    drawMenu(model);
-    subMenu(model.getCurrentIndex());
-    drawSubMenu(model2);
+    function subMenu(focusIndex) {
+        var focusCategoryData = mainModel.getData();
+        var focusCategoryId = focusCategoryData[focusIndex].getCategoryId();
+
+        var focusCategoryList = communicator.connection(communicator.getCategoryList("getCategoryTree", focusCategoryId));
+        var subCategoryList = categoryManager.getValues(focusCategoryList);
+        return subModel = new Model(subCategoryList, 0, 9, 0);
+    }
+
+    function subMenuList(focusIndex) {
+        var focusCategoryData = mainModel.getData();
+        var getContentGroupList = communicator.getContentGroupList("getContentGroupList", focusCategoryData[focusIndex].getCategoryId());
+        var resultContentGroupList = communicator.connection(getContentGroupList);
+        var contentGroupList = contentGroupManager.getValues(resultContentGroupList);
+
+        var listModel = new Model(contentGroupList, 0, 10, 0);
+        return listModel;
+    }
+
+    function drawSubMenu(subModelData) {
+        $("#previewList").show();
+        $("#contentGroupList").hide();
+        $(".bg_submenu_poster").hide();
+
+        var subCategoryData = subModelData.getData();
+        var j = subModelData.getStartIndex();
+        if (subCategoryData != null) {
+            for (var i = 0; i < subModelData.getPageSize(); i++) {
+                if (subCategoryData[j] != null) {
+                    submenuItem[i].innerText = subCategoryData[j].getCategoryName();
+                } else {
+                    submenuItem[i].innerText = "";
+                }
+                j++;
+            }
+        }
+    }
+
+    function drawSubMenuList(subListModelData) {
+        $("#previewList").hide();
+        $("#contentGroupList").show();
+        $(".bg_submenu_poster").show();
+        var contentGroupData = subListModelData.getData();
+        var j = subListModelData.getStartIndex();
+
+        for (var i = 0; i < subListModelData.getPageSize(); i++) {
+            if(contentGroupData[j] != null) {
+                contentGroupItem[i].innerText = contentGroupData[j].getTitle();
+            } else {
+                //submenuList[1].removeChild(contentGroupItemForm[i]);
+            }
+            j++;
+        }
+    }
+
+    drawMenu(mainModel);
+    isContentGroup(mainModel.getCurrentIndex());
 
     this.moveFocus = function () {
         var keyCode = event.keyCode;
 
-        selectedItem(model.getCurrentIndex() - model.getStartIndex());
+        selectedItem(mainModel.getCurrentIndex() - mainModel.getStartIndex());
         switch (keyCode) {
             case 38: //up
-                if (model.getCurrentIndex() != 0) {
-                    if (model.getCurrentIndex() == model.getStartIndex()) {
-                        model.setStartIndex(model.getStartIndex() - 1);
-                        model.setCurrentIndex(model.getCurrentIndex() - 1);
+                if (mainModel.getCurrentIndex() != 0) {
+                    if (mainModel.getCurrentIndex() == mainModel.getStartIndex()) {
+                        mainModel.setStartIndex(mainModel.getStartIndex() - 1);
+                        mainModel.setCurrentIndex(mainModel.getCurrentIndex() - 1);
                     } else {
-                        model.setCurrentIndex(model.getCurrentIndex() - 1);
+                        mainModel.setCurrentIndex(mainModel.getCurrentIndex() - 1);
                     }
                 } else {
-                    if (model.getTotalItemCount() < model.getPageSize()) {
-                        model.setStartIndex(0);
-                        model.setCurrentIndex(model.getTotalItemCount() - 1);
+                    if (mainModel.getTotalItemCount() < mainModel.getPageSize()) {
+                        mainModel.setStartIndex(0);
+                        mainModel.setCurrentIndex(mainModel.getTotalItemCount() - 1);
                     } else {
-                        model.setCurrentIndex(model.getTotalItemCount() - 1);
-                        model.setStartIndex(model.getCurrentIndex() - model.getPageSize() + 1);
+                        mainModel.setCurrentIndex(mainModel.getTotalItemCount() - 1);
+                        mainModel.setStartIndex(mainModel.getCurrentIndex() - mainModel.getPageSize() + 1);
                     }
                 }
-                drawMenu(model);
-                subMenu(model.getCurrentIndex());
-                drawSubMenu(model2);
-                console.log("[KEY_UP]" + model.getStartIndex() + "/" + model.getCurrentIndex());
+                drawMenu(mainModel);
+                isContentGroup(mainModel.getCurrentIndex());
+                console.log("[KEY_UP]" + mainModel.getStartIndex() + "/" + mainModel.getCurrentIndex());
                 break;
             case 40: //down
-                if (model.getCurrentIndex() != model.getTotalItemCount() - 1) {
-                    if (model.getEndIndex() - 1 == model.getCurrentIndex()) {
-                        model.setStartIndex(model.getStartIndex() + 1);
-                        model.setCurrentIndex(model.getCurrentIndex() + 1);
+                if (mainModel.getCurrentIndex() != mainModel.getTotalItemCount() - 1) {
+                    if (mainModel.getEndIndex() - 1 == mainModel.getCurrentIndex()) {
+                        mainModel.setStartIndex(mainModel.getStartIndex() + 1);
+                        mainModel.setCurrentIndex(mainModel.getCurrentIndex() + 1);
                     } else {
-                        model.setCurrentIndex(model.getCurrentIndex() + 1);
+                        mainModel.setCurrentIndex(mainModel.getCurrentIndex() + 1);
                     }
                 } else {
-                    model.setCurrentIndex(0);
-                    model.setStartIndex(0);
+                    mainModel.setCurrentIndex(0);
+                    mainModel.setStartIndex(0);
                 }
-                drawMenu(model);
-                subMenu(model.getCurrentIndex());
-                drawSubMenu(model2);
-                console.log("[KEY_DOWN]" + model.getStartIndex() + "/" + model.getCurrentIndex());
+                drawMenu(mainModel);
+                isContentGroup(mainModel.getCurrentIndex());
+                console.log("[KEY_DOWN]" + mainModel.getStartIndex() + "/" + mainModel.getCurrentIndex());
                 break;
             case 39: //right
-                history.push(model);
-                model = model2;
-                drawMenu(model);
-                subMenu(model.getCurrentIndex());
-                drawSubMenu(model2);
-                console.log("[KEY_RIGHT]" + model.getStartIndex() + "/" + model.getCurrentIndex());
+                history.push(mainModel);
+                mainModel = subModel;
+                drawMenu(mainModel);
+                isContentGroup(mainModel.getCurrentIndex());
+                console.log("[KEY_RIGHT]" + mainModel.getStartIndex() + "/" + mainModel.getCurrentIndex());
+                //console.error("[pcgView]" + isLeafCategory(mainModel.getCurrentIndex()) + "/[leaf]" + mainModel.getData()[mainModel.getCurrentIndex()].getLeaf());
                 break;
             case 37: //left
                 if (history.length != 0) {
-                    model = history.pop();
+                    mainModel = history.pop();
                 } else {
                 }
-                drawMenu(model);
-                subMenu(model.getCurrentIndex());
-                drawSubMenu(model2);
-                console.log("[KEY_LEFT]" + model.getStartIndex() + "/" + model.getCurrentIndex());
+                drawMenu(mainModel);
+                isContentGroup(mainModel.getCurrentIndex());
+                console.log("[KEY_LEFT]" + mainModel.getStartIndex() + "/" + mainModel.getCurrentIndex());
+                //console.error("[pcgView]" + isLeafCategory(mainModel.getCurrentIndex()) + "/[leaf]" + mainModel.getData()[mainModel.getCurrentIndex()].getLeaf());
                 break;
+                console.log(mainModel.getData()[mainModel.getCurrentIndex()].getViewerType());
+        }
+    };
+
+    function isContentGroup(focusIndex) {
+        var isLeafCategory;
+        var modelData = mainModel.getData();
+
+        if (modelData[focusIndex].getViewerType() == "30") {
+            isLeafCategory = subMenuList(focusIndex);
+            drawSubMenuList(isLeafCategory);
+        } else {
+            isLeafCategory = subMenu(focusIndex);
+            drawSubMenu(isLeafCategory);
         }
 
-    };
+    }
 
     function getFocusItem(focusIndex) {
         var listItems = $(".menu_box");
@@ -125,30 +194,4 @@ function Main() {
     function selectedItem(focusIndex) {
         getFocusItem(focusIndex).removeClass("focus selected");
     }
-
-
-    function subMenu(focusIndex) {
-        var focusCategoryData = model.getData();
-        var focusCategoryId = focusCategoryData[focusIndex].getCategoryId();
-        var focusCategoryList = communicator.connection(communicator.getCategoryList("getCategoryTree", focusCategoryId));
-        var subCategoryList = communicator.getValues(focusCategoryList);
-
-        model2 = new Model(subCategoryList, 0, 9, 0);
-        console.log(subCategoryList.length);
-    }
-
-    function drawSubMenu(subModelData) {
-        var subCategoryData = subModelData.getData();
-
-        var j = subModelData.getStartIndex();
-        for (var i = 0; i < subModelData.getPageSize(); i++) {
-            if (subCategoryData[j] != null) {
-                submenuItem[i].innerText = subCategoryData[j].getCategoryName();
-            } else {
-                submenuItem[i].innerText = "";
-            }
-            j++;
-        }
-    }
-
 }

@@ -3,10 +3,10 @@
  */
 
 window.onload = function () {
-    var main = new Main();
-    document.addEventListener('keydown', main.moveFocus, false);
     $("#contentGroupList").hide();
     $(".bg_submenu_poster").hide();
+    var main = new Main();
+    document.addEventListener('keydown', main.moveFocus, false);
 };
 
 function Main() {
@@ -22,14 +22,22 @@ function Main() {
     var mainView = $(".bg_left");
     var menuList = mainView[0].getElementsByClassName("menu_list");
     var menuItem = menuList[0].getElementsByClassName("menu");
-    var mainModel = new Model(categoryList, 0, 9, 0);
+    var mainModel = new Model(categoryList, 0, 9, 0, false);
 
     var subView = $(".bg_right");
     var submenuList = subView[0].getElementsByClassName("submenu_list");
     var submenuItem = submenuList[0].getElementsByTagName("li");
     var subModel;
 
+    var submenuPoster = $(".bg_submenu_poster");
+    var synopsis = submenuPoster[0].getElementsByClassName("text");
+    var review = submenuPoster[0].getElementsByClassName("bg_star");
+    var stars = review[0].getElementsByTagName("span");
+    var img = submenuPoster[0].getElementsByTagName("img");
+
     var contentGroupItem = submenuList[1].getElementsByClassName("rank_title02");
+    var won = submenuList[1].getElementsByClassName("won");
+    var contentGroupItemForm = submenuList[1].getElementsByClassName("submenu_box");
 
     function drawMenu(modelData) {
         var categoryData = modelData.getData();
@@ -42,6 +50,7 @@ function Main() {
             }
             j++;
         }
+        modelData.setFocused(true);
         selectItem(modelData.getCurrentIndex() - modelData.getStartIndex());
     }
 
@@ -51,7 +60,7 @@ function Main() {
 
         var focusCategoryList = communicator.connection(communicator.getCategoryList("getCategoryTree", focusCategoryId));
         var subCategoryList = categoryManager.getValues(focusCategoryList);
-        return subModel = new Model(subCategoryList, 0, 9, 0);
+        return subModel = new Model(subCategoryList, 0, 9, 0, false);
     }
 
     function subMenuList(focusIndex) {
@@ -60,7 +69,7 @@ function Main() {
         var resultContentGroupList = communicator.connection(getContentGroupList);
         var contentGroupList = contentGroupManager.getValues(resultContentGroupList);
 
-        var listModel = new Model(contentGroupList, 0, 10, 0);
+        var listModel = new Model(contentGroupList, 0, 10, 0, false);
         return listModel;
     }
 
@@ -71,6 +80,7 @@ function Main() {
 
         var subCategoryData = subModelData.getData();
         var j = subModelData.getStartIndex();
+
         if (subCategoryData != null) {
             for (var i = 0; i < subModelData.getPageSize(); i++) {
                 if (subCategoryData[j] != null) {
@@ -87,17 +97,26 @@ function Main() {
         $("#previewList").hide();
         $("#contentGroupList").show();
         $(".bg_submenu_poster").show();
+
         var contentGroupData = subListModelData.getData();
         var j = subListModelData.getStartIndex();
+
+        var rating = contentGroupData[0].getReviewRating();
 
         for (var i = 0; i < subListModelData.getPageSize(); i++) {
             if(contentGroupData[j] != null) {
                 contentGroupItem[i].innerText = contentGroupData[j].getTitle();
+                if(contentGroupData[j].getAssetFree() != "2") {
+                    won[i].visibility = "hidden";
+                }
             } else {
-                //submenuList[1].removeChild(contentGroupItemForm[i]);
+                submenuList[1].removeChild(contentGroupItemForm[i]);
             }
             j++;
         }
+        console.log(contentGroupData[0].getImageFileName());
+        synopsis[0].innerText = contentGroupData[0].getSynopsis();
+        stars[5].innerText = Number(rating).toFixed(1);
     }
 
     drawMenu(mainModel);
@@ -178,7 +197,6 @@ function Main() {
             isLeafCategory = subMenu(focusIndex);
             drawSubMenu(isLeafCategory);
         }
-
     }
 
     function getFocusItem(focusIndex) {

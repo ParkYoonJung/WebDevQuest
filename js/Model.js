@@ -2,12 +2,12 @@
  * Created by YoonJung on 2014-11-25.
  */
 
-function Model(data, startIndex, pageSize, currentIndex) {
+function Model(data, startIndex, pageSize, currentIndex, focused) {
     var data = data;
     var startIndex = startIndex; //화면상 시작점
     var pageSize = pageSize;
     var currentIndex = currentIndex; //배열데이터의 인덱스
-    var visible = false;
+    var focused = focused;
 
     this.setData = function(_data) {
         data = _data;
@@ -53,12 +53,12 @@ function Model(data, startIndex, pageSize, currentIndex) {
         return data.length;
     };
 
-    this.setVisible = function(_visible) {
-        visible = _visible;
+    this.setFocused = function(_focused) {
+        focused = _focused;
     };
 
-    this.getVisible = function() {
-        return visible;
+    this.geFocused = function() {
+        return focused;
     };
 }
 
